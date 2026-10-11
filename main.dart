@@ -1,68 +1,74 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ExpenseManagerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ExpenseManagerApp extends StatelessWidget {
+  const ExpenseManagerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(scaffoldBackgroundColor: Colors.white),
-      home: const ExpenseWelcomeScreen(),
+      title: 'Expense Manager',
+      home: const WelcomeScreen(),
     );
   }
 }
-class ExpenseWelcomeScreen extends StatelessWidget {
-  const ExpenseWelcomeScreen({super.key});
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Spacer(flex: 2),
+              const SizedBox(), // Khoảng trống căn trên
 
-              const CustomWalletIcon(),
-
-              const SizedBox(height: 36),
-
-              const Text(
-                'Expense Manager',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
-                ),
+              // Nội dung chính giữa
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildWalletIcon(),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'Expense Manager',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF212121),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Quản lý chi tiêu cá nhân\nđơn giản và hiệu quả',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 12),
-
-              const Text(
-                'Quản lý chi tiêu cá nhân\nđơn giản và hiệu quả',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF757575),
-                  height: 1.5,
-                ),
-              ),
-
-              const Spacer(flex: 3),
-
+              // Nút Bắt đầu
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Xử lý khi nhấn nút Bắt đầu
+                  },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E75D8),
+                    backgroundColor: const Color(0xFF1E88E5),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -78,70 +84,53 @@ class ExpenseWelcomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class CustomWalletIcon extends StatelessWidget {
-  const CustomWalletIcon({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(110, 90),
-      painter: WalletPainter(),
+  // Widget tạo icon Ví tiền
+  Widget _buildWalletIcon() {
+    return SizedBox(
+      width: 100,
+      height: 80,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              width: 50,
+              height: 25,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          Container(
+            width: 100,
+            height: 65,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E88E5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Align(
+              alignment: const Alignment(0.7, 0),
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
-}
-
-class WalletPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-
-    final greenPaint = Paint()
-      ..color = const Color(0xFF4CAF50)
-      ..style = PaintingStyle.fill;
-
-    final greenRect = RRect.fromLTRBR(
-      size.width * 0.30,
-      0,
-      size.width * 0.70,
-      size.height * 0.38,
-      const Radius.circular(8),
-    );
-    canvas.drawRRect(greenRect, greenPaint);
-
-
-    final bluePaint = Paint()
-      ..color = const Color(0xFF1E75D8)
-      ..style = PaintingStyle.fill;
-
-    final blueRect = RRect.fromLTRBR(
-      0,
-      size.height * 0.22,
-      size.width,
-      size.height,
-      const Radius.circular(16),
-    );
-    canvas.drawRRect(blueRect, bluePaint);
-
-
-    final whitePaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(
-      Offset(size.width * 0.82, size.height * 0.61),
-      6.0,
-      whitePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
