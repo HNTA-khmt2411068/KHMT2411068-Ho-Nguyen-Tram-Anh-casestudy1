@@ -1,5 +1,3 @@
-import "dart:io";
-import "package:flutter/services.dart";
 import "package:path/path.dart" as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -65,24 +63,34 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = p.join(dbPath, filePath);
 
-    final exists = await databaseExists(path);
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _createDB,
+    );
+  }
 
-    if (!exists) {
-      try {
-        await Directory(p.dirname(path)).create(recursive: true);
-      } catch (_) {}
-
-      ByteData data = await rootBundle.load(p.join('assets', filePath));
-      List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-      await File(path).writeAsBytes(bytes, flush: true);
-    }
-
-    return await openDatabase(path);
+  // Tự động tạo bảng transactions khi ứng dụng tạo DB lần đầu
+  Future _createDB(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE transactions (
+        id TEXT PRIMARY KEY,
+        category TEXT NOT NULL,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        note TEXT,
+        isExpense INTEGER NOT NULL
+      )
+    ''');
   }
 
   Future<int> insertTransaction(TransactionModel item) async {
     final db = await instance.database;
-    return await db.insert('transactions', item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(
+      'transactions',
+      item.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<TransactionModel>> getAllTransactions() async {
@@ -106,7 +114,7 @@ class DatabaseHelper {
     return await db.delete(
       'transactions',
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [id], // Thay item.id thành id
     );
   }
 }
