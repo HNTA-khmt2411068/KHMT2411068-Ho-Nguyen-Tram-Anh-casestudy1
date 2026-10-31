@@ -108,7 +108,7 @@ class DatabaseHelper {
     return await db.delete(
       'transactions',
       where: 'id = ?',
-      whereArgs: [id], // Thay item.id thành id
+      whereArgs: [id],
     );
   }
 }
