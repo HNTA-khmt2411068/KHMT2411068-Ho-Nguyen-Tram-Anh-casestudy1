@@ -1,9 +1,6 @@
 import "package:path/path.dart" as p;
 import 'package:sqflite/sqflite.dart';
 
-// ==========================================
-// 1. MODEL DỮ LIỆU GIAO DỊCH
-// ==========================================
 class TransactionModel {
   final String id;
   final String category;
@@ -44,9 +41,6 @@ class TransactionModel {
   }
 }
 
-// ==========================================
-// 2. LỚP XỬ LÝ DATABASE SQLITE
-// ==========================================
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
@@ -70,7 +64,7 @@ class DatabaseHelper {
     );
   }
 
-  // Tự động tạo bảng transactions khi ứng dụng tạo DB lần đầu
+
   Future _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE transactions (

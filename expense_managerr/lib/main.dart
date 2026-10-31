@@ -7,9 +7,6 @@ void main() async{
   runApp(const ExpenseManagerApp());
 }
 
-// ==========================================
-// CHƯƠNG TRÌNH CHÍNH & UI
-// ==========================================
 class ExpenseManagerApp extends StatelessWidget {
   const ExpenseManagerApp({super.key});
 
@@ -28,7 +25,6 @@ class ExpenseManagerApp extends StatelessWidget {
   }
 }
 
-// 1. MÀN HÌNH CHÀO MỪNG
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -147,7 +143,6 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-// ĐIỀU HƯỚNG & QUẢN LÝ DỮ LIỆU
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
@@ -248,7 +243,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-// 2. MÀN HÌNH DASHBOARD
 class DashboardScreen extends StatelessWidget {
   final List<TransactionModel> transactions;
   final Function(TransactionModel) onAdd;
@@ -517,7 +511,6 @@ Widget _buildTransactionWidget(
   );
 }
 
-// 3. MÀN HÌNH DANH SÁCH GIAO DỊCH
 class TransactionListScreen extends StatefulWidget {
   final List<TransactionModel> transactions;
   final Function(TransactionModel) onAdd;
@@ -635,7 +628,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 }
 
-// 4 & 5. MÀN HÌNH THÊM / SỬA GIAO DỊCH
 class TransactionFormScreen extends StatefulWidget {
   final bool isEdit;
   final TransactionModel? transactionToEdit;
@@ -657,14 +649,23 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   late TextEditingController noteController;
   late DateTime selectedDate;
 
-  final List<Map<String, dynamic>> categories = [
-    {'name': 'Ăn uống', 'icon': Icons.restaurant, 'color': Colors.redAccent},
-    {'name': 'Mua sắm', 'icon': Icons.shopping_bag, 'color': Colors.blue},
-    {'name': 'Đi lại', 'icon': Icons.directions_car, 'color': Colors.purple},
-    {'name': 'Học tập', 'icon': Icons.menu_book, 'color': Colors.indigo},
-    {'name': 'Lương', 'icon': Icons.account_balance_wallet, 'color': Colors.green},
-    {'name': 'Khác', 'icon': Icons.more_horiz, 'color': Colors.orange},
+  final List expenseCategories = [
+  {'name': 'Ăn uống', 'icon': Icons.restaurant, 'color': Colors.redAccent},
+  {'name': 'Mua sắm', 'icon': Icons.shopping_bag, 'color': Colors.blue},
+  {'name': 'Đi lại', 'icon': Icons.directions_car, 'color': Colors.purple},
+  {'name': 'Học tập', 'icon': Icons.menu_book, 'color': Colors.indigo},
+  {'name': 'Khác', 'icon': Icons.more_horiz, 'color': Colors.orange},
   ];
+
+  final List incomeCategories = [
+  {'name': 'Lương', 'icon': Icons.account_balance_wallet, 'color': Colors.green},
+  {'name': 'Học bổng', 'icon': Icons.school, 'color': Colors.teal},
+  {'name': 'Lì xì', 'icon': Icons.card_giftcard, 'color': Colors.red},
+  {'name': 'Khác', 'icon': Icons.more_horiz, 'color': Colors.orange},
+  ];
+
+  List get currentCategories =>
+      isExpense ? expenseCategories : incomeCategories;
 
   @override
   void initState() {
@@ -672,7 +673,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     if (widget.isEdit && widget.transactionToEdit != null) {
       final t = widget.transactionToEdit!;
       isExpense = t.isExpense;
-      final categoryExists = categories.any((c) => c['name'] == t.category);
+      final categoryExists = currentCategories.any((c) => c['name'] == t.category);
       selectedCategory = categoryExists ? t.category : 'Khác';
       amountController = TextEditingController(
         text: t.amount % 1 == 0 ? t.amount.toInt().toString() : t.amount.toString(),
@@ -751,6 +752,17 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     Navigator.pop(context, result);
   }
 
+  // Cập nhật lại danh mục khi chuyển qua lại giữa Chi tiêu / Thu nhập
+  void _switchType(bool expense) {
+    setState(() {
+      isExpense = expense;
+      final exists = currentCategories.any((c) => c['name'] == selectedCategory);
+      if (!exists) {
+        selectedCategory = currentCategories.first['name'];
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -787,7 +799,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => isExpense = true),
+                              onTap: () => _switchType(true),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
@@ -808,7 +820,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                           ),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => isExpense = false),
+                              onTap: () => _switchType(false),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
@@ -844,7 +856,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         child: DropdownButton<String>(
                           value: selectedCategory,
                           isExpanded: true,
-                          items: categories.map((cat) {
+                          items: currentCategories.map((cat) {
                             return DropdownMenuItem<String>(
                               value: cat['name'],
                               child: Row(
@@ -937,8 +949,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     );
   }
 }
-
-// 6. MÀN HÌNH THỐNG KÊ
 class StatisticsScreen extends StatelessWidget {
   final List<TransactionModel> transactions;
 
@@ -1086,8 +1096,17 @@ class DonutChartPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String userName = 'Nguyễn Văn A';
+  String userEmail = 'nguyenvana@example.com';
+  double monthlyBudget = 5000000; // Ngân sách mặc định
 
   @override
   Widget build(BuildContext context) {
@@ -1106,66 +1125,158 @@ class ProfileScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
           children: [
-            // Thông tin User
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Colors.blue.shade100,
-                  child: const Icon(Icons.person, size: 40, color: Color(0xFF1E88E5)),
-                ),
-                const SizedBox(width: 16),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Nguyễn Văn A',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // Card Thông tin cá nhân
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.blue.shade100,
+                    child: const Icon(Icons.person, size: 36, color: Color(0xFF1E88E5)),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userName,
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          userEmail,
+                          style: const TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'nguyenvana@example.com',
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Danh sách tùy chọn
+            // 1. Thông tin cá nhân
             _buildMenuItem(
               icon: Icons.person_outline,
               title: 'Thông tin cá nhân',
-              onTap: () {},
+              onTap: () async {
+                final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserInfoScreen(
+                    currentName: userName,
+                    currentEmail: userEmail,
+                  ),
+                ),
+                );
+                if (result != null) {
+                  setState(() {
+                    userName = result['name']!;
+                    userEmail = result['email']!;
+                  });
+                }
+              },
             ),
+
+            // 2. Cài đặt ngân sách
             _buildMenuItem(
               icon: Icons.account_balance_wallet_outlined,
               title: 'Cài đặt ngân sách',
-              onTap: () {},
+              onTap: () async {
+                final newBudget = await Navigator.push<double>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BudgetSettingScreen(currentBudget: monthlyBudget),
+                  ),
+                );
+                if (newBudget != null) {
+                  setState(() => monthlyBudget = newBudget);
+                }
+              },
             ),
+
+            // 3. Danh mục chi tiêu
             _buildMenuItem(
               icon: Icons.format_list_bulleted,
               title: 'Danh mục chi tiêu',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CategoryManagementScreen(),
+                  ),
+                );
+              },
             ),
+
+            // 4. Sao lưu dữ liệu
             _buildMenuItem(
               icon: Icons.cloud_upload_outlined,
               title: 'Sao lưu dữ liệu',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BackupScreen(),
+                  ),
+                );
+              },
             ),
+
+            // 5. Đổi mật khẩu
             _buildMenuItem(
               icon: Icons.lock_outline,
               title: 'Đổi mật khẩu',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ChangePasswordScreen(),
+                  ),
+                );
+              },
             ),
+
+            // 6. Đăng xuất
             _buildMenuItem(
               icon: Icons.logout,
               title: 'Đăng xuất',
               textColor: Colors.red,
               iconColor: Colors.red,
               showChevron: false,
-              onTap: () {},
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Xác nhận đăng xuất'),
+                    content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                          );
+                        },
+                        child: const Text('Đăng xuất', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -1203,22 +1314,22 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// 8. MÀN HÌNH BỘ LỌC
 class FilterScreen extends StatefulWidget {
-  const FilterScreen({super.key});
+  final Map<String, dynamic>? initialFilter;
+
+  const FilterScreen({super.key, this.initialFilter});
 
   @override
   State<FilterScreen> createState() => _FilterScreenState();
 }
 
 class _FilterScreenState extends State<FilterScreen> {
-  // 1. Loại giao dịch
-  bool isAllTypes = true;
-  bool isIncome = false;
-  bool isExpense = false;
+  late bool isAllTypes;
+  late bool isIncome;
+  late bool isExpense;
+  late String selectedCategory;
+  late String selectedTimeRange;
 
-  // 2. Danh mục
-  String selectedCategory = 'Tất cả danh mục';
   final List<String> categories = [
     'Tất cả danh mục',
     'Ăn uống',
@@ -1226,17 +1337,28 @@ class _FilterScreenState extends State<FilterScreen> {
     'Đi lại',
     'Học tập',
     'Lương',
+    'Học bổng',
+    'Lì xì',
     'Khác',
   ];
 
-  // 3. Khoảng thời gian
-  String selectedTimeRange = 'Hôm nay';
   final List<String> timeRanges = [
+    'Tất cả',
     'Hôm nay',
     '7 ngày qua',
     'Tháng này',
-    'Tùy chọn',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final init = widget.initialFilter;
+    isAllTypes = init?['isAllTypes'] ?? true;
+    isIncome = init?['isIncome'] ?? false;
+    isExpense = init?['isExpense'] ?? false;
+    selectedCategory = init?['category'] ?? 'Tất cả danh mục';
+    selectedTimeRange = init?['timeRange'] ?? 'Tất cả';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1263,7 +1385,6 @@ class _FilterScreenState extends State<FilterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- SECTION 1: Loại giao dịch ---
                     const Text(
                       'Loại giao dịch',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -1304,7 +1425,6 @@ class _FilterScreenState extends State<FilterScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // --- SECTION 2: Danh mục ---
                     const Text(
                       'Danh mục',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -1336,7 +1456,6 @@ class _FilterScreenState extends State<FilterScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // --- SECTION 3: Khoảng thời gian ---
                     const Text(
                       'Khoảng thời gian',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -1364,7 +1483,6 @@ class _FilterScreenState extends State<FilterScreen> {
               ),
             ),
 
-            // Nút Áp dụng ở cuối màn hình
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: SizedBox(
@@ -1372,7 +1490,6 @@ class _FilterScreenState extends State<FilterScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Trả về kết quả bộ lọc cho màn hình trước
                     Navigator.pop(context, {
                       'isAllTypes': isAllTypes,
                       'isIncome': isIncome,
@@ -1441,4 +1558,406 @@ String formatCurrency(double amount) {
     RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
         (Match m) => '${m[1]}.',
   );
+}
+// 1. MÀN HÌNH ĐỔI MẬT KHẨU
+class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
+
+  @override
+  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+}
+
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final oldPass = TextEditingController();
+  final newPass = TextEditingController();
+  final confirmPass = TextEditingController();
+
+  @override
+  void dispose() {
+    oldPass.dispose();
+    newPass.dispose();
+    confirmPass.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Đổi mật khẩu', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: oldPass,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Mật khẩu hiện tại',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newPass,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Mật khẩu mới',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: confirmPass,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Xác nhận mật khẩu mới',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E88E5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  if (newPass.text != confirmPass.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Mật khẩu mới không khớp!'), backgroundColor: Colors.red),
+                    );
+                    return;
+                  }
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Đổi mật khẩu thành công!')),
+                  );
+                },
+                child: const Text('Cập nhật mật khẩu', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 2. MÀN HÌNH SỬA THÔNG TIN CÁ NHÂN
+class UserInfoScreen extends StatefulWidget {
+  final String currentName;
+  final String currentEmail;
+
+  const UserInfoScreen({
+    super.key,
+    required this.currentName,
+    required this.currentEmail,
+  });
+
+  @override
+  State<UserInfoScreen> createState() => _UserInfoScreenState();
+}
+
+class _UserInfoScreenState extends State<UserInfoScreen> {
+  late TextEditingController nameController;
+  late TextEditingController emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController(text: widget.currentName);
+    emailController = TextEditingController(text: widget.currentEmail);
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Thông tin cá nhân', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Họ và tên',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E88E5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  Navigator.pop(context, {
+                    'name': nameController.text,
+                    'email': emailController.text,
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Đã cập nhật thông tin thành công!')),
+                  );
+                },
+                child: const Text('Lưu thay đổi', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 3. MÀN HÌNH CÀI ĐẶT NGÂN SÁCH
+class BudgetSettingScreen extends StatefulWidget {
+  final double currentBudget;
+  const BudgetSettingScreen({super.key, required this.currentBudget});
+
+  @override
+  State<BudgetSettingScreen> createState() => _BudgetSettingScreenState();
+}
+
+class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
+  late TextEditingController budgetController;
+
+  @override
+  void initState() {
+    super.initState();
+    budgetController = TextEditingController(text: widget.currentBudget.toInt().toString());
+  }
+
+  @override
+  void dispose() {
+    budgetController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Cài đặt ngân sách', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Hạn mức chi tiêu hàng tháng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: budgetController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                suffixText: 'đ',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text('Ứng dụng sẽ cảnh báo khi tổng chi tiêu vượt quá hạn mức này.', style: TextStyle(color: Colors.grey, fontSize: 13)),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E88E5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  double? val = double.tryParse(budgetController.text);
+                  if (val != null && val > 0) {
+                    Navigator.pop(context, val);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Đã cập nhật hạn mức ngân sách!')),
+                    );
+                  }
+                },
+                child: const Text('Lưu ngân sách', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 4. MÀN HÌNH DANH MỤC CHI TIÊU
+class CategoryManagementScreen extends StatelessWidget {
+  const CategoryManagementScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final categories = [
+      {'name': 'Ăn uống', 'icon': Icons.restaurant, 'color': Colors.redAccent},
+      {'name': 'Mua sắm', 'icon': Icons.shopping_bag, 'color': Colors.blue},
+      {'name': 'Đi lại', 'icon': Icons.directions_car, 'color': Colors.purple},
+      {'name': 'Học tập', 'icon': Icons.menu_book, 'color': Colors.indigo},
+      {'name': 'Lương', 'icon': Icons.account_balance_wallet, 'color': Colors.green},
+      {'name': 'Học bổng', 'icon': Icons.school, 'color': Colors.teal},
+      {'name': 'Lì xì', 'icon': Icons.card_giftcard, 'color': Colors.red},
+      {'name': 'Khác', 'icon': Icons.more_horiz, 'color': Colors.orange},
+    ];
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Danh mục chi tiêu', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final cat = categories[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: Icon(cat['icon'] as IconData, color: cat['color'] as Color),
+              title: Text(cat['name'] as String, style: const TextStyle(fontWeight: FontWeight.w500)),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// 5. MÀN HÌNH SAO LƯU DỮ LIỆU
+class BackupScreen extends StatefulWidget {
+  const BackupScreen({super.key});
+
+  @override
+  State<BackupScreen> createState() => _BackupScreenState();
+}
+
+class _BackupScreenState extends State<BackupScreen> {
+  bool isLoading = false;
+
+  void _handleAction(String msg) async {
+    setState(() => isLoading = true);
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    setState(() => isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Sao lưu dữ liệu', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            const Icon(Icons.cloud_sync, size: 80, color: Color(0xFF1E88E5)),
+            const SizedBox(height: 16),
+            const Text('Đồng bộ dữ liệu CSDL', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text(
+              'Sao lưu các giao dịch lên hệ thống để tránh mất dữ liệu khi đổi thiết bị.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 40),
+            if (isLoading)
+              const CircularProgressIndicator()
+            else ...[
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.cloud_upload, color: Colors.white),
+                  label: const Text('Sao lưu ngay', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E88E5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _handleAction('Đã sao lưu thành công CSDL!'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.cloud_download, color: Color(0xFF1E88E5)),
+                  label: const Text('Khôi phục dữ liệu', style: TextStyle(color: Color(0xFF1E88E5), fontSize: 16)),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () => _handleAction('Đã khôi phục dữ liệu thành công!'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }
