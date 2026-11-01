@@ -8,7 +8,6 @@ String formatCurrency(double amount) {
         (Match m) => '${m[1]}.',
   );
 }
-
 Widget buildTransactionWidget(
     BuildContext context,
     TransactionModel item,
