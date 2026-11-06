@@ -24,6 +24,7 @@ class TransactionListScreen extends StatefulWidget {
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
   String _searchQuery = '';
+  int _selectedTypeIndex = 0;
   Map<String, dynamic>? _filterData;
 
   @override
@@ -33,6 +34,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       final matchesQuery = t.category.toLowerCase().contains(query) ||
           t.note.toLowerCase().contains(query);
       if (!matchesQuery) return false;
+
+      if (_selectedTypeIndex == 1 && t.isExpense) return false;
+      if (_selectedTypeIndex == 2 && !t.isExpense) return false;
 
       if (_filterData != null) {
         bool isAllTypes = _filterData!['isAllTypes'] ?? true;
@@ -111,10 +115,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     ),
                     onPressed: () async {
                       final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FilterScreen(initialFilter: _filterData),
-                      ),
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FilterScreen(initialFilter: _filterData),
+                        ),
                       );
                       if (result != null) {
                         setState(() {
@@ -124,6 +128,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     },
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildTypeChip(0, 'Tất cả'),
+                const SizedBox(width: 8),
+                _buildTypeChip(1, 'Thu nhập'),
+                const SizedBox(width: 8),
+                _buildTypeChip(2, 'Chi tiêu'),
               ],
             ),
             const SizedBox(height: 16),
@@ -160,6 +174,34 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           }
         },
       ),
+    );
+  }
+
+  Widget _buildTypeChip(int index, String label) {
+    final isSelected = _selectedTypeIndex == index;
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black87,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      selected: isSelected,
+      selectedColor: const Color(0xFF1E88E5),
+      backgroundColor: Colors.white,
+      showCheckmark: false,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide.none,
+      ),
+      onSelected: (bool selected) {
+        if (selected) {
+          setState(() {
+            _selectedTypeIndex = index;
+          });
+        }
+      },
     );
   }
 }
